@@ -66,8 +66,17 @@ A `KeysetRoot` (KSR) is self-declared onto the network using a single-purpose th
 
 The structure of a `KeysetRoot` is:
 
+```rust
+pub struct KeysetRoot {
+    pub first_deepkey_agent: AgentPubKey, // The "FDA" is the author of the `KeysetRoot`.
+    /// The private key is thrown away.
+    root_pub_key: AgentPubKey,
+    fda_pubkey_signed_by_root_key: Signature,
+}
+```
+
 - The `first_deepkey_agent` (FDA), the author of the `KeysetRoot`.
-- The `root_pub_key`, the public part of an throwaway keypair which is only used to generate this KSR. (Using the `sign_ephemeral` HDK function.)
+- The `root_pub_key`, the public part of a throwaway keypair which is only used to generate this KSR. (Using the `sign_ephemeral` HDK function.)
 -  A `Signature`: the authority of the FDA is established using the private part of the throwaway keypair to sign sign the FDA's pubkey.
 
 Note that if a device is to issue a KSR it must do so as its very first action in Deepkey. 
@@ -106,11 +115,30 @@ Accepting an invite moves ownership to a new entity, and removes the device alon
 
 The structure of a `DeviceInvite` (written to the invitor's chain) is:
 
+```rust
+pub struct DeviceInvite {
+    pub keyset_root_authority: ActionHash, // refers to the invitor's KSR
+    // Either the KeysetRoot or the DeviceInviteAcceptance
+    pub parent: ActionHash, // referring to the invitor's direct parent in the keyset tree, which is either its KSR or its current `DeviceInviteAcceptance`. This is used to establish the chain of authority from the original KSR.
+    pub device_agent: AgentPubKey, // The agent being invited.
+}
+```
+
 - KSR: An `ActionHash` referring to the invitor's KSR.
 - Parent: An `ActionHash` referring to the invitor's direct parent in the keyset tree, which is either its KSR or its current `DeviceInviteAcceptance`. This is used to establish the chain of authority from the original KSR.
 - Invitee: The `AgentPubKey` being invited.
 
 The structure of a `DeviceInviteAcceptance` (written to the invitee's chain) is:
+
+```rust
+pub struct DeviceInviteAcceptance {
+    /// The KSRA for the invite being accepted.
+    /// Not strictly required for validation as this is on the DeviceInvite.
+    /// This is here as it may save network hops other than during.
+    pub keyset_root_authority: ActionHash,
+    invite: ActionHash,
+}
+```
 
 - The `ActionHash` of the KSR.
 - The `ActionHash` of the `DeviceInvite`.
@@ -492,8 +520,15 @@ The structure of `KeyMeta` is:
 
 ### DnaBinding API
 
-A `DnaBinding` is:
-
+The structure of `DnaBinding` is:
+```rust
+pub struct DnaBinding {
+    // A KeyMeta element
+    key_meta: ActionHash, // referencing a `KeyMeta`
+    dna_hash: DnaHash, // the DNA the key is bound to
+    app_name: AppName, // as strings of `bundle_name` and `cell_nick` *TODO: make names compatible with new naming*
+}
+```
 - A `key_meta` as `ActionHash` referencing a `KeyMeta`
 - A `dna_hash` of the DNA the key is bound to
 - An `app_name` as strings of `bundle_name` and `cell_nick` *TODO: make names compatible with new naming*
