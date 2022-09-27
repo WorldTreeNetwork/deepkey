@@ -549,3 +549,25 @@ pub struct DnaBinding {
   - creates a `DnaBinding`
 - `install_an_app`
   - *TODO*
+
+
+
+
+--------------
+
+# New Specs - Unimplemented Features
+
+## Unmanaged Keys
+
+For Holo-hosted users, where the private keys are generated in the browser, we have found no reasonable way to put them under key management.
+
+**Context:**
+1. The UX is difficult - trying to offer a web2-like experience with email and password, and introducing details of key management makes the experience too complicated, especially when you consider a web user might use multiple Holo-hosted apps, each with different emails and passwords, all creating different master seeds, where the source chains reside on different hosts. Presenting a unified view for management of these things is problematic at best.
+2. We can't put web user keys under the Deepkey management of the Hosts without becoming a custodial key management system. We don't want the hosts to have control of web users' keys. To try to run multiple Deepkey instances on a host for each web user is largely what presents the UX difficulties in #1 above. Clients blindly sign.
+
+The solution is to have keys for web users stored in Deepkey as an unmanaged key. Registered as a valid key, but not under the direct management of any KeysetRoot. We can attach to it a Claim Code / Key which the web user could use later if they became a Holochain user / ran a local Holochain conductor, they could use this key to pull their Holo keys into direct management on their own agent. 
+
+Create unmanaged keys, how to claim them
+Structure of an unmanaged key: 2 functions
+
+
